@@ -164,6 +164,14 @@ void BoundingBoxManagerSingleton::CalculateCollision(void)
 
 			auto bColliding = true;
 
+			/*
+				a cool thing about glm::vecX is that you can iterate through them with a forloop
+				k = 0 -> is the x-axis
+				k = 1 -> is the y-axis
+				k = 2 -> is the z-axis
+				(if youre in a vec4)
+				k = 4 -> is the w-value
+			*/
 			for(int k = 0; k < 3; k++)
 			{
 				if(dist[k] > sumHalfSizes[k])
