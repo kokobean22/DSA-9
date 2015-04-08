@@ -95,6 +95,8 @@ void BoundingBoxClass::GenerateAxisAlignedBoundingBox(matrix4 a_m4ModeltoWorld)
 {
 	//Generate the Axis Aligned Bounding Box here based on the Oriented Bounding Box
 	
+	// NOTE ON AUTO: http://thbecker.net/articles/auto_and_decltype/section_02.html
+	
 	/*
 	 the first thing we need to do, is to recreate the rectangular prism (RP) that represents the OOBB
 	*/
