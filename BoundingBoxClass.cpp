@@ -94,17 +94,49 @@ void BoundingBoxClass::GenerateOrientedBoundingBox(String a_sInstanceName)
 void BoundingBoxClass::GenerateAxisAlignedBoundingBox(matrix4 a_m4ModeltoWorld)
 {
 	//Generate the Axis Aligned Bounding Box here based on the Oriented Bounding Box
+	
+	auto noTrans = glm::mat3(a_m4ModeltoWorld);
 
-	//Find the original bounding box
-	//Locate the vMin and vMax of the bounding Box
-	vector3 minBBVector = GetMinimumOBB();
-	vector3 maxBBVector = GetMaximumOBB();
-	//Create a new box based on these numbers
-	vector3 newBBv3Size;
+	auto transMaxOBB = this->GetMaximumOBB(); 
+	auto transMinOBB = this->GetMinimumOBB();
+	auto obbCenter = (transMaxOBB + transMinOBB) / 2.0f;
 
-	newBBv3Size.x = glm::distance(vector3(minBBVector.x, 0.0f, 0.0f), vector3(maxBBVector.x, 0.0f, 0.0f));
-	newBBv3Size.y = glm::distance(vector3(0.0f, minBBVector.y, 0.0f), vector3(0.0f, maxBBVector.y, 0.0f));
-	newBBv3Size.z = glm::distance(vector3(0.0f, 0.0f, minBBVector.z), vector3(0.0f, 0.0f, maxBBVector.z));
+	auto sizes = transMaxOBB - obbCenter;
+
+	auto max = vector3();
+	auto min = vector3();
+
+	std::vector<vector3> allPoints;
+
+	for(int x = -1; x < 2; x += 2) {
+		for(int y = -1; y < 2; y += 2) {
+			for(int z = -1; z < 2; z += 2) {
+				vector3 np;
+				np.x = x * sizes.x;
+				np.y = y * sizes.y;
+				np.z = z * sizes.z;
+				np += obbCenter;
+				np = noTrans * np;
+				max = glm::max(max, np);
+				min = glm::min(min, np);
+			}
+		}
+	}
+
+	aabbCenter = (min + max) / 2.0f;
+
+	aabbSize.x = glm::distance(vector3(min.x, 0.0f, 0.0f), vector3(max.x, 0.0f, 0.0f));
+	aabbSize.y = glm::distance(vector3(0.0f, min.y, 0.0f), vector3(0.0f, max.y, 0.0f));
+	aabbSize.z = glm::distance(vector3(0.0f, 0.0f, min.z), vector3(0.0f, 0.0f, max.z));
+
+	auto tranOnly = glm::mat4(1.0f);
+	tranOnly[3] = a_m4ModeltoWorld[3];
+
+	MeshManagerSingleton* pMeshMngr = MeshManagerSingleton::GetInstance();
+	pMeshMngr->AddAxisToQueue(tranOnly * glm::translate(aabbCenter));
+	pMeshMngr->AddCubeToQueue(tranOnly * glm::translate(aabbCenter) * glm::scale(aabbSize), aabbColor, MERENDER::WIRE);
+	
+
 }
 void BoundingBoxClass::AddBoxToRenderList(matrix4 a_m4ModelToWorld, vector3 a_vColor, bool a_bRenderCentroid)
 {

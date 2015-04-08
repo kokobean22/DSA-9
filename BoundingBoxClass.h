@@ -78,7 +78,11 @@ public:
 	*/
 	void AddBoxToRenderList(matrix4 a_mModelToWorld, vector3 a_vColor, bool a_bRenderCentroid = false);
 
-	
+
+	vector3 aabbSize;
+	vector3 aabbCenter;
+	vector3 aabbColor;
+
 private:
 	/* Releases the object from memory */
 	void Release(void);
