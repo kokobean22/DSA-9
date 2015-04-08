@@ -129,35 +129,44 @@ void BoundingBoxManagerSingleton::CalculateCollision(void)
 	//for all Boxs...
 	for(int nBox = 0; nBox < m_nBoxs; nBox++)
 	{
-		//Make all the Boxs white
+		//Make all the Boxs black
 		m_lColor[nBox] = vector3(0.0f);
 		//Place all the centroids of Boxs in global space
 		lCentroid.push_back(static_cast<vector3>(m_lMatrix[nBox] * vector4(m_lBox[nBox]->GetCentroid(), 1.0f)));
+		// this makes the outside box default to white
 		m_lBox[nBox]->aabbColor = vector3(1.0f);
 	}
 
 	//Now the actual check
 	for(int i = 0; i < m_nBoxs - 1; i++)
 	{
-		auto box1size = m_lBox[i]->aabbSize / 2.0f;
+		/*
+		here I use seperating axis theorem
+		you might use your own collision detection here
+		here are some resources about SAT:
+		http://www.metanetsoftware.com/technique/tutorialA.html
+		http://gamedevelopment.tutsplus.com/tutorials/collision-detection-using-the-separating-axis-theorem--gamedev-169
+		http://www.dyn4j.org/2010/01/sat/
+		*/
+		auto box1HalfSize = m_lBox[i]->aabbSize / 2.0f;
 		auto trans1 = vector3(m_lMatrix[i][3]);
 		auto box1center = trans1 + m_lBox[i]->aabbCenter;
 
 		for(int j = i + 1; j < m_nBoxs; j++)
 		{
-			auto box2size = m_lBox[j]->aabbSize / 2.0f;
+			auto box2halfsize = m_lBox[j]->aabbSize / 2.0f;
 			auto trans2 = vector3(m_lMatrix[j][3]);
 			auto box2center = trans2 + m_lBox[j]->aabbCenter;
 
 			auto dist = glm::abs(box1center - box2center);
 
-			auto sumSizes = box1size + box2size;
+			auto sumHalfSizes = box1HalfSize + box2halfsize;
 
 			auto bColliding = true;
 
 			for(int k = 0; k < 3; k++)
 			{
-				if(dist[k] > sumSizes[k])
+				if(dist[k] > sumHalfSizes[k])
 				{
 					bColliding = false;
 					break;
@@ -165,7 +174,10 @@ void BoundingBoxManagerSingleton::CalculateCollision(void)
 			}
 
 			if(bColliding)
-				m_lBox[i]->aabbColor = m_lBox[j]->aabbColor = MERED; //We make the Boxes red
+			{
+				m_lColor[i] = m_lColor[j] = MECYAN; // make the inside box of both models cyan
+				m_lBox[i]->aabbColor = m_lBox[j]->aabbColor = MERED; //We make the outside box of both models red
+			}
 		}
 	}
 }
